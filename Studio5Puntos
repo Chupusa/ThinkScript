@@ -1,0 +1,12 @@
+//Study Alerta de 5 Puntos
+# 5 puntos de Squeeze
+TTM_Squeeze()."SqueezeAlert" from 1 bars ago is false and
+TTM_Squeeze()."SqueezeAlert" from 2 bars ago is false and
+TTM_Squeeze()."SqueezeAlert" from 3 bars ago is false and
+TTM_Squeeze()."SqueezeAlert" from 4 bars ago is false and
+TTM_Squeeze()."SqueezeAlert" from 5 bars ago is false and
+TTM_Squeeze()."SqueezeAlert" is true
+
+// Study Volumen promedio de 30 dias mayor de 450 000
+
+Average("data" = volume, "length" = 30) is greater than 450000
