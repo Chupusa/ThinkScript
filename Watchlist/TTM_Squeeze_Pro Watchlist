@@ -1,0 +1,59 @@
+# TTM_Squeeze_Pro Watchlist - (Usa Vela Cerrada (Vela 1) )
+
+input length = 20;
+input Num_Dev_Dn = -2.0;
+input Num_Dev_Up = 2.0;
+input averageType = AverageType.SIMPLE;
+input factorHigh = 1.0;
+input factorMid = 1.5;
+input factorLow = 2.0;
+
+# USAR CIERRE ANTERIOR para estabilidad
+def price = close[1];
+def high_prev = high[1];
+def low_prev = low[1];
+
+def sDev = StDev(price, length);
+def MidLineBB = MovingAverage(averageType, price, length);
+def LowerBandBB = MidLineBB + Num_Dev_Dn * sDev;
+def UpperBandBB = MidLineBB + Num_Dev_Up * sDev;
+
+def tr = TrueRange(high_prev, price, low_prev);
+def avgTR = MovingAverage(averageType, tr, length);
+
+def shiftLow = factorLow * avgTR;
+def shiftMid = factorMid * avgTR;
+def shiftHigh = factorHigh * avgTR;
+def Avg = MovingAverage(averageType, price, length);
+
+def LowerBandKCLow = Avg - shiftLow;
+def UpperBandKCLow = Avg + shiftLow;
+def LowerBandKCMid = Avg - shiftMid;
+def UpperBandKCMid = Avg + shiftMid;
+def LowerBandKCHigh = Avg - shiftHigh;
+def UpperBandKCHigh = Avg + shiftHigh;
+
+def K = (Highest(high_prev, length) + Lowest(low_prev, length)) / 2 + ExpAverage(price, length);
+def momo = Inertia(price - K / 2, length);
+
+def preSqueeze = LowerBandBB > LowerBandKCLow and UpperBandBB < UpperBandKCLow;
+def originalSqueeze = LowerBandBB > LowerBandKCMid and UpperBandBB < UpperBandKCMid;
+def extrSqueeze = LowerBandBB > LowerBandKCHigh and UpperBandBB < UpperBandKCHigh;
+
+def firedUp = momo > 0 and momo > momo[1] and (preSqueeze[1] or originalSqueeze[1] or extrSqueeze[1]) and !(preSqueeze or originalSqueeze or extrSqueeze);
+def firedDn = momo < 0 and momo < momo[1] and (preSqueeze[1] or originalSqueeze[1] or extrSqueeze[1]) and !(preSqueeze or originalSqueeze or extrSqueeze);
+
+# Resultado para la columna
+AddLabel(yes, 
+         if extrSqueeze then "🔴 EXTREMO-SQUEEZE" 
+         else if originalSqueeze then "🟡 SQUEEZE" 
+         else if preSqueeze then "🟠 PRE-SQUEEZE" 
+         else if firedUp then "🟢 SUBIENDO UP" 
+         else if firedDn then "🔻 BAJANDO DN" 
+         else "⚪ NADA", 
+         if extrSqueeze then Color.RED 
+         else if originalSqueeze then Color.YELLOW 
+         else if preSqueeze then Color.ORANGE 
+         else if firedUp then Color.GREEN 
+         else if firedDn then Color.DARK_RED 
+         else Color.GRAY);
