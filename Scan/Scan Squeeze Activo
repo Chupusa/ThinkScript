@@ -1,0 +1,37 @@
+# Condición para SCAN: Encuentra cualquier tipo de squeeze activo
+
+input length = 20;
+input Num_Dev_Dn = -2.0;
+input Num_Dev_Up = 2.0;
+input averageType = AverageType.SIMPLE;
+input displace = 0;
+
+def sDev = StDev(data = close[-displace], length = length);
+def MidLineBB = MovingAverage(averageType, data = close[-displace], length = length);
+def LowerBandBB = MidLineBB + Num_Dev_Dn * sDev;
+def UpperBandBB = MidLineBB + Num_Dev_Up * sDev;
+
+input factorHigh = 1.0;
+input factorMid = 1.5;
+input factorLow = 2.0;
+input trueRangeAverageType = AverageType.SIMPLE;
+
+def shiftHigh = factorHigh * MovingAverage(trueRangeAverageType, TrueRange(high, close, low), length);
+def shiftMid = factorMid * MovingAverage(trueRangeAverageType, TrueRange(high, close, low), length);
+def shiftLow = factorLow * MovingAverage(trueRangeAverageType, TrueRange(high, close, low), length);
+def average = MovingAverage(averageType, close, length);
+def Avg = average[-displace];
+
+def UpperBandKCLow = average[-displace] + shiftLow[-displace];
+def LowerBandKCLow = average[-displace] - shiftLow[-displace];
+def UpperBandKCMid = average[-displace] + shiftMid[-displace];
+def LowerBandKCMid = average[-displace] - shiftMid[-displace];
+def UpperBandKCHigh = average[-displace] + shiftHigh[-displace];
+def LowerBandKCHigh = average[-displace] - shiftHigh[-displace];
+
+def preSqueeze      = LowerBandBB > LowerBandKCLow and UpperBandBB < UpperBandKCLow;
+def originalSqueeze = LowerBandBB > LowerBandKCMid and UpperBandBB < UpperBandKCMid;
+def extrSqueeze     = LowerBandBB > LowerBandKCHigh and UpperBandBB < UpperBandKCHigh;
+
+# Filtro: devuelve TRUE si hay cualquier tipo de squeeze
+plot scan = preSqueeze or originalSqueeze or extrSqueeze;
